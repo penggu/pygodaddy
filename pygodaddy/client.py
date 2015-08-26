@@ -85,7 +85,8 @@ class GoDaddyClient(object):
         """
         if html is None:
             html = self.session.get(self.default_url).text
-        self.logged_in = bool(re.compile(r'Welcome:&nbsp;<span id="ctl00_lblUser" .*?\>(.*)</span>').search(html))
+        # I also changed the way it checks if you're logged in.
+        self.logged_in = bool(re.compile(r'id="menu-customer-name">(.*)</a>').search(html))
         return self.logged_in
 
 
@@ -97,20 +98,16 @@ class GoDaddyClient(object):
         :returns:  `True` if login is successful, else `False`
         """
         r = self.session.get(self.default_url)
-        try:
-            viewstate = re.compile(r'id="__VIEWSTATE" value="([^"]+)"').search(r.text).group(1)
-        except:
-            logger.exception('Login routine broken, godaddy may have updated their login mechanism')
-            return False
         data = {
-                'Login$userEntryPanel2$LoginImageButton.x' : 0,
-                'Login$userEntryPanel2$LoginImageButton.y' : 0,
-                'Login$userEntryPanel2$UsernameTextBox' : username,
-                'Login$userEntryPanel2$PasswordTextBox' : password,
-                '__VIEWSTATE': viewstate,
+                'app' : 'mya',
+                'realm' : 'idp',
+                'name' : username,
+                'password' : password,
         }
-        r = self.session.post(r.url, data=data)
-        return self.is_loggedin(r.text)
+        # Updated by Bryce Gough = URL is using AU for the region so maybe update this if you need another region.
+	loginUri = 'https://sso.godaddy.com/v1/?path=%2Fdefault.aspx&app=mya&regionsite=au&marketid=en-AU'
+        r = self.session.post(loginUri, data=data)
+	return self.is_loggedin(r.text)
 
     def find_domains(self):
         """ return all domains of user """
@@ -254,4 +251,3 @@ class GoDaddyClient(object):
             logger.error('Failed to save records, has the website changed?')
             return False
         return True
-
