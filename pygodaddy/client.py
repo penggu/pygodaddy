@@ -99,15 +99,14 @@ class GoDaddyClient(object):
         """
         r = self.session.get(self.default_url)
         data = {
-                'app' : 'mya',
-                'realm' : 'idp',
+                'app' : 'fos',
+                'realm': 'idp',
                 'name' : username,
                 'password' : password,
         }
-        # Updated by Bryce Gough = URL is using AU for the region so maybe update this if you need another region.
-	loginUri = 'https://sso.godaddy.com/v1/?path=%2Fdefault.aspx&app=mya&regionsite=au&marketid=en-AU'
+        loginUri = 'https://sso.godaddy.com/'
         r = self.session.post(loginUri, data=data)
-	return self.is_loggedin(r.text)
+        return self.is_loggedin(r.text)
 
     def find_domains(self):
         """ return all domains of user """
